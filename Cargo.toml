@@ -5,7 +5,4 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.86"
-dirs = "5.0.1"
 rodio = { version = "0.18.0", features = ["mp3", "flac"] }
-serde = { version = "1.0.202", features = ["derive"] }
-tokio = { version = "1.37.0", features = ["full"] }

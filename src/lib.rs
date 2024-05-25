@@ -1,11 +1,12 @@
 
 
-use rodio::{Decoder, OutputStream, OutputStreamHandle, Sink, Source};
+use rodio::{Decoder, OutputStream, OutputStreamHandle, Sink};
 use std::fs::File;
 use std::io::BufReader;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
+use anyhow::Result;
 
 pub struct AudioPlayer {
     sink: Arc<Mutex<Option<Sink>>>,
@@ -17,22 +18,22 @@ pub struct AudioPlayer {
 
 
 impl AudioPlayer {
-    pub fn new() -> Self {
-        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-        AudioPlayer {
+    pub fn new() -> Result<Self> {
+        let (_stream, stream_handle) = OutputStream::try_default()?;
+        Ok(AudioPlayer {
             sink: Arc::new(Mutex::new(None)),
             _stream,
             _stream_handle: stream_handle,
             repeat: Arc::new(Mutex::new(false)),
             stop_flag: Arc::new(Mutex::new(false))
-        }
+        })
     }
 
-    pub fn play(&self, file_path: &str) {
-        let sink = Sink::try_new(&self._stream_handle).unwrap();
+    pub fn play(&self, file_path: &str) -> Result<()> {
+        let sink = Sink::try_new(&self._stream_handle)?;
         
-        let file = BufReader::new(File::open(file_path).unwrap());
-        let source = Decoder::new(file).unwrap();
+        let file = BufReader::new(File::open(file_path)?);
+        let source = Decoder::new(file)?;
         sink.append(source);
 
         let mut current_sink = self.sink.lock().unwrap();
@@ -82,6 +83,8 @@ impl AudioPlayer {
             }
 
         });
+
+        Ok(())
     }
 
     pub fn play_repeat(&self, enabled: bool) {
